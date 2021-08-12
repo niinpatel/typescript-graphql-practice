@@ -5,7 +5,7 @@ import models from "./models";
 
 const DB_URL = accessEnv("DB_URL");
 
-const sequelize = new Sequelize({
+const sequelize = new Sequelize(DB_URL, {
   dialect: "mysql",
   dialectOptions: {
     charset: "utf-8",
