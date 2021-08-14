@@ -84,6 +84,13 @@ export default () => {
 
   const { chefs } = data!;
 
+  const onAddRestaurant = async (values: { name: string }, id: string) => {
+    await createRestaurant({
+      variables: { ...values, chefId: id },
+    });
+    await refetch();
+  };
+
   return (
     <Wrapper>
       {chefs.map(({ id, name, restaurants }) => {
@@ -96,13 +103,7 @@ export default () => {
               })}
 
               <AddRestaurant
-                onAddRestaurant={async ({ name }) => {
-                  await createRestaurant({
-                    variables: { name, chefId: id },
-                  });
-
-                  await refetch();
-                }}
+                onAddRestaurant={(values) => onAddRestaurant(values, id)}
               />
             </Restaurants>
           </Chef>
