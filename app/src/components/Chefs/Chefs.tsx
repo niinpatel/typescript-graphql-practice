@@ -1,8 +1,14 @@
 import * as React from "react";
-import { gql } from "@apollo/client";
 import { useQuery, useMutation } from "@apollo/react-hooks";
 import styled from "styled-components";
 import AddRestaurant from "../AddRestaurant";
+import { Button, TextField } from "../Common";
+import { useForm } from "react-hook-form";
+import { getChefsQuery } from "../../api/queries";
+import {
+  createChefMutation,
+  createRestaurantMutation,
+} from "../../api/mutations";
 
 interface Restaurant {
   id: string;
@@ -18,19 +24,6 @@ interface Chef {
 interface QueryData {
   chefs: Chef[];
 }
-
-const query = gql`
-  query {
-    chefs {
-      id
-      name
-      restaurants {
-        id
-        name
-      }
-    }
-  }
-`;
 
 const Chef = styled.div`
   margin-bottom: 1rem;
@@ -56,17 +49,15 @@ const Restaurants = styled.div`
 
 const Wrapper = styled.div``;
 
-const createRestaurantMutation = gql`
-  mutation ($chefId: ID!, $name: String!) {
-    createRestaurant(chefId: $chefId, name: $name) {
-      id
-      name
-    }
-  }
-`;
-
 export default () => {
-  const { data, loading, refetch } = useQuery<QueryData>(query);
+  const { data, loading, refetch } = useQuery<QueryData>(getChefsQuery);
+
+  const {
+    formState: { isValid, isSubmitting },
+    register,
+    reset,
+    handleSubmit,
+  } = useForm({ mode: "onChange" });
 
   const [createRestaurant] = useMutation<
     {
@@ -78,37 +69,63 @@ export default () => {
     }
   >(createRestaurantMutation);
 
+  const [createChef] = useMutation<
+    {
+      createChef: Chef;
+    },
+    {
+      name: string;
+    }
+  >(createChefMutation);
+
+  const onAddChef = handleSubmit(async (values: { name: string }) => {
+    await createChef({ variables: values });
+    await refetch();
+    reset();
+  });
+
+  const onAddRestaurant = async (values: { name: string }, id: string) => {
+    await createRestaurant({ variables: { ...values, chefId: id } });
+    await refetch();
+  };
+
   if (loading) {
-    return <p>loading</p>;
+    return <p>loading...</p>;
   }
 
   const { chefs } = data!;
 
-  const onAddRestaurant = async (values: { name: string }, id: string) => {
-    await createRestaurant({
-      variables: { ...values, chefId: id },
-    });
-    await refetch();
-  };
-
   return (
     <Wrapper>
-      {chefs.map(({ id, name, restaurants }) => {
-        return (
-          <Chef key={id}>
-            <ChefName>{name}</ChefName>
-            <Restaurants>
-              {restaurants.map(({ id, name }) => {
-                return <Restaurant key={id}>{name}</Restaurant>;
-              })}
+      {chefs.map(({ id, name, restaurants }) => (
+        <Chef key={id}>
+          <ChefName>
+            {name} <Button>x</Button>
+          </ChefName>
+          <Restaurants>
+            {restaurants.map(({ id, name }) => (
+              <Restaurant key={id}>
+                {name} <Button>x</Button>
+              </Restaurant>
+            ))}
 
-              <AddRestaurant
-                onAddRestaurant={(values) => onAddRestaurant(values, id)}
-              />
-            </Restaurants>
-          </Chef>
-        );
-      })}
+            <AddRestaurant
+              onAddRestaurant={(values) => onAddRestaurant(values, id)}
+            />
+          </Restaurants>
+        </Chef>
+      ))}
+
+      <form onSubmit={onAddChef}>
+        <TextField
+          {...register("name", { required: true })}
+          placeholder="Chef's name"
+          disabled={isSubmitting}
+        />
+        <button type="submit" disabled={!isValid || isSubmitting}>
+          add chef
+        </button>
+      </form>
     </Wrapper>
   );
 };

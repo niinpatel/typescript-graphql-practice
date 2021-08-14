@@ -32,6 +32,7 @@ export default ({ onAddRestaurant: pushAddRestaurant }: AddRestaurantProps) => {
         <TextField
           type="text"
           disabled={isSubmitting}
+          placeholder="Restaurant's name"
           {...register("name", { required: true })}
         />
 
