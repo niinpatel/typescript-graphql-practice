@@ -21,3 +21,15 @@ export const createChefMutation = gql`
     }
   }
 `;
+
+export const deleteChefMutation = gql`
+  mutation ($id: ID!) {
+    deleteChef(id: $id)
+  }
+`;
+
+export const deleteRestaurantMutation = gql`
+  mutation ($id: ID!) {
+    deleteRestaurant(id: $id)
+  }
+`;

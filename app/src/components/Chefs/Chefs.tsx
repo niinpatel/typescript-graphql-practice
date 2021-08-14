@@ -8,6 +8,8 @@ import { getChefsQuery } from "../../api/queries";
 import {
   createChefMutation,
   createRestaurantMutation,
+  deleteChefMutation,
+  deleteRestaurantMutation,
 } from "../../api/mutations";
 
 interface Restaurant {
@@ -60,23 +62,22 @@ export default () => {
   } = useForm({ mode: "onChange" });
 
   const [createRestaurant] = useMutation<
-    {
-      createRestaurant: Restaurant;
-    },
-    {
-      chefId: string;
-      name: string;
-    }
+    { createRestaurant: Restaurant },
+    { chefId: string; name: string }
   >(createRestaurantMutation);
 
-  const [createChef] = useMutation<
-    {
-      createChef: Chef;
-    },
-    {
-      name: string;
-    }
-  >(createChefMutation);
+  const [createChef] = useMutation<{ createChef: Chef }, { name: string }>(
+    createChefMutation
+  );
+
+  const [deleteChef] = useMutation<{ deleteChef: Boolean }, { id: string }>(
+    deleteChefMutation
+  );
+
+  const [deleteRestaurant] = useMutation<
+    { deleteRestaurant: Boolean },
+    { id: string }
+  >(deleteRestaurantMutation);
 
   const onAddChef = handleSubmit(async (values: { name: string }) => {
     await createChef({ variables: values });
@@ -100,12 +101,28 @@ export default () => {
       {chefs.map(({ id, name, restaurants }) => (
         <Chef key={id}>
           <ChefName>
-            {name} <Button>x</Button>
+            {name}{" "}
+            <Button
+              onClick={async () => {
+                await deleteChef({ variables: { id } });
+                await refetch();
+              }}
+            >
+              x
+            </Button>
           </ChefName>
           <Restaurants>
             {restaurants.map(({ id, name }) => (
               <Restaurant key={id}>
-                {name} <Button>x</Button>
+                {name}{" "}
+                <Button
+                  onClick={async () => {
+                    await deleteRestaurant({ variables: { id } });
+                    await refetch();
+                  }}
+                >
+                  x
+                </Button>
               </Restaurant>
             ))}
 
