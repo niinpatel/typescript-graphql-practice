@@ -1,7 +1,8 @@
 import * as React from "react";
 import { gql } from "@apollo/client";
-import { useQuery } from "@apollo/react-hooks";
+import { useQuery, useMutation } from "@apollo/react-hooks";
 import styled from "styled-components";
+import AddRestaurant from "../AddRestaurant";
 
 interface Restaurant {
   id: string;
@@ -55,8 +56,27 @@ const Restaurants = styled.div`
 
 const Wrapper = styled.div``;
 
+const createRestaurantMutation = gql`
+  mutation ($chefId: ID!, $name: String!) {
+    createRestaurant(chefId: $chefId, name: $name) {
+      id
+      name
+    }
+  }
+`;
+
 export default () => {
-  const { data, loading } = useQuery<QueryData>(query);
+  const { data, loading, refetch } = useQuery<QueryData>(query);
+
+  const [createRestaurant] = useMutation<
+    {
+      createRestaurant: Restaurant;
+    },
+    {
+      chefId: string;
+      name: string;
+    }
+  >(createRestaurantMutation);
 
   if (loading) {
     return <p>loading</p>;
@@ -74,6 +94,16 @@ export default () => {
               {restaurants.map(({ id, name }) => {
                 return <Restaurant key={id}>{name}</Restaurant>;
               })}
+
+              <AddRestaurant
+                onAddRestaurant={async ({ name }) => {
+                  await createRestaurant({
+                    variables: { name, chefId: id },
+                  });
+
+                  await refetch();
+                }}
+              />
             </Restaurants>
           </Chef>
         );

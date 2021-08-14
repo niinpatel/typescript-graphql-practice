@@ -14,7 +14,7 @@ const typeDefs = gql`
 
   type Mutation {
     createChef(name: String!): Chef!
-    createRestaurent(name: String!, chefId: String!): Restaurant!
+    createRestaurant(name: String!, chefId: ID!): Restaurant!
   }
 
   type Query {
